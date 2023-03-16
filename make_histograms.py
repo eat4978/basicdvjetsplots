@@ -103,6 +103,7 @@ h_mDV_all.Write()
 h_mDV_passPresel.Write()
 h_mDV_passSel.Write()
 fout.Close()
+print("Writing outputs/out_"+tag+".root")
 
 # Plot histograms
 c1 = ROOT.TCanvas("c1", "c1", 800, 600)
@@ -124,4 +125,4 @@ legend.SetBorderSize(0)
 legend.Draw()
 
 c1.SaveAs("plots/dvmass_"+tag+".png")
-
+print("Saved plots/dvmass_"+tag+".png")

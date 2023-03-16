@@ -25,6 +25,9 @@ and the snippet `C1N2N1_rpvLF_1500_p1ns` tells us what in this ntuple:
 - `1500` is the mass of the long-lived SUSY particle in GeV
 - `p1ns` means that the lifetime of the long-lived SUSY particle is 0.1 ns
 
-## Filling histograms
-
-
+## Making histograms
+Run `make_histograms.py`, which takes as arguments a DSID (required) and a tag (optional). Example:
+```
+python make_histograms.py 501167 v2
+```
+This script will make a histogram of the reconstructed mass of displaced vertices before and after applying some selection.

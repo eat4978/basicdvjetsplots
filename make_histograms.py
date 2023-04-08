@@ -107,7 +107,9 @@ print("Writing outputs/out_"+tag+".root")
 
 # Plot histograms
 c1 = ROOT.TCanvas("c1", "c1", 800, 600)
-h_mDV_all.SetLineWidth(2); h_mDV_passPresel.SetLineWidth(2); h_mDV_passSel.SetLineWidth(2);
+h_mDV_all.SetLineWidth(2);
+h_mDV_passPresel.SetLineWidth(2);
+h_mDV_passSel.SetLineWidth(2);
 h_mDV_all.SetLineColor(ROOT.kBlack); h_mDV_passPresel.SetLineColor(ROOT.kBlue); h_mDV_passSel.SetLineColor(ROOT.kRed);
 h_mDV_all.GetYaxis().SetTitle("Number of DVs")
 h_mDV_all.GetXaxis().SetTitle("DV mass [GeV]")

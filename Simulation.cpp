@@ -188,6 +188,7 @@ int main(int argc, const char * argv[]) {
     int pass_decay = 0;
     int pass_inv_m = 0;
     
+    double allevents_e = 0;
     double pass_JetSel_e = 0;
     double pass_R_e = 0;
     double pass_Dist_e = 0;
@@ -211,10 +212,10 @@ int main(int argc, const char * argv[]) {
     
     TFile* file_3870 = new TFile("HEPData-ins2628398-v1-event_efficiency_HighPt_R_3870_mm.root");
     TFile* file_1150 = new TFile("HEPData-ins2628398-v1-event_efficiency_HighPt_R_1150_mm.root");
-    TFile* file_1150_3870 = new TFile("HEPData-ins2628398-v1-event_efficiency_HighPt_R_1150_3870_mm");
-    TH1D* h_3870 = (TH1D*)file_3870->Get("event_efficiency_HighPt_R_3870_mm");
-    TH1D* h_1150 = (TH1D*)file_1150->Get("event_efficiency_HighPt_R_1150_mm");
-    TH1D* h_1150_3870 = (TH1D*)file_1150_3870->Get("event_efficiency_HighPt_R_1150_3870_mm");
+    TFile* file_1150_3870 = new TFile("HEPData-ins2628398-v1-event_efficiency_HighPt_R_1150_3870_mm.root");
+    TH1D* h_3870 = (TH1D*)file_3870->Get("event_efficiency_HighPt_R_3870_mm/Hist1D_y1");
+    TH1D* h_1150 = (TH1D*)file_1150->Get("event_efficiency_HighPt_R_1150_mm/Hist1D_y1");
+    TH1D* h_1150_3870 = (TH1D*)file_1150_3870->Get("event_efficiency_HighPt_R_1150_3870_mm/Hist1D_y1");
     
 //    //testing
 //    for(int i = 0; i < effiency_1150_3870.size(); i++){
@@ -296,6 +297,11 @@ int main(int argc, const char * argv[]) {
             int n_pass_inv_m = 0;
             
             int sum_pt = 0;
+//            int sum_pt_1150 = 0;
+//            int sum_pt_1150_3870 = 0;
+//            int sum_pt_3870 = 0;
+            float Rxy_max = 0;
+            double efficiency;
             
             TLorentzVector p_tracks;
             
@@ -359,6 +365,7 @@ int main(int argc, const char * argv[]) {
                 }
                 
                 //LLP decay
+                Rxy_max = sqrt(x_LLP->at(0) * x_LLP->at(0) + y_LLP->at(0) * y_LLP->at(0));
                 if(x_LLP->at(k) != -9999){
                     float Rxy = sqrt(x_LLP->at(k) * x_LLP->at(k) + y_LLP->at(k) * y_LLP->at(k));
                     if(Rxy < 3870){
@@ -369,15 +376,45 @@ int main(int argc, const char * argv[]) {
                             LLP_Pt50++;
                         }
                     }
+                    
+                    if(Rxy > Rxy_max){
+                        Rxy_max = Rxy;
+                    }
+                    
+                    //add sum P_t
+//                    if(Rxy < 1150){
+//                        sum_pt_1150 += truthJet_Pt->at(k);
+//                    }
+//                    else if (Rxy > 1150 && Rxy < 3870){
+//                        sum_pt_1150_3870 += truthJet_Pt->at(k);
+//                    }
+//                    else{
+//                        sum_pt_3870 += truthJet_Pt->at(k);
+//                    }
                 }
             }
             
             //test
-            std::cout << "sum_pt = " << sum_pt << std::endl;
+//            std::cout << "sum_pt = " << sum_pt << std::endl;
             
             //get efficiency
-            double efficiency = h_1150->GetBinContent(h_1150->FindBin(sum_pt * 0.001));     // FIX ME
+            if(Rxy_max < 1150){
+                efficiency = h_1150->GetBinContent(h_1150->FindBin(sum_pt * 0.001));
+            }
+            else if (Rxy_max < 3870){
+                efficiency = h_1150_3870->GetBinContent(h_1150_3870->FindBin(sum_pt * 0.001));
+            }
+            else{
+                efficiency = h_3870->GetBinContent(h_3870->FindBin(sum_pt * 0.001));
+            }
+//            double efficiency = h_1150->GetBinContent(h_1150->FindBin(sum_pt * 0.001));     // FIX ME
+//            double efficiency_1150 = h_1150->GetBinContent(h_1150->FindBin(sum_pt_1150 * 0.001));
+//            double efficiency_1150_3870 = h_1150->GetBinContent(h_1150_3870->FindBin(sum_pt_1150_3870 * 0.001));
+//            double efficiency_3870 = h_1150->GetBinContent(h_3870->FindBin(sum_pt_3870 * 0.001));
             
+//            double efficiency = 1;
+            
+            allevents_e = allevents_e + (weight * efficiency);
             
             if(Pt137 < 4 && Pt101 < 5 && Pt83 < 6 && Pt55 < 7){continue;}
             if(LLP_Pt70 < 1 && LLP_Pt50 < 2){continue;}
@@ -464,12 +501,12 @@ int main(int argc, const char * argv[]) {
     std::cout << "Total events: " << allevents << std::endl;
     std::cout << "Events passing jet selection: " << n_pass_JetSel << std::endl;
     std::cout << "----------------------------------------------------------------------" << std::endl;
-    std::cout << std::left << std::setw(60) << "Jet selection: " << pass_JetSel_e / allevents * 100  << "%" << std::endl;
-    std::cout << std::left << std::setw(60) << "     Rxy < 300 mm and |z| < 300 mm: " << pass_R_e / allevents * 100  << "%" << std::endl;
-    std::cout << std::left << std::setw(60) << "     Transverse distance from the primary vertex > 4 mm: " << pass_Dist_e / allevents * 100  << "%" << std::endl;
-    std::cout << std::left << std::setw(60) << "     Have at least 1 charged particle with |d0| > 2 mm: " << pass_d0_e / allevents * 100  << "%" << std::endl;
-    std::cout << std::left << std::setw(62) << "     n_selected decay products ≥ 5: " << pass_decay_e / allevents * 100  << "%" << std::endl;
-    std::cout << std::left << std::setw(60) << "     Invariant mass > 10 GeV: " << pass_inv_m_e / allevents * 100  << "%" << std::endl;
+    std::cout << std::left << std::setw(60) << "Jet selection: " << pass_JetSel_e / allevents_e * 100  << "%" << std::endl;
+    std::cout << std::left << std::setw(60) << "     Rxy < 300 mm and |z| < 300 mm: " << pass_R_e / allevents_e * 100  << "%" << std::endl;
+    std::cout << std::left << std::setw(60) << "     Transverse distance from the primary vertex > 4 mm: " << pass_Dist_e / allevents_e * 100  << "%" << std::endl;
+    std::cout << std::left << std::setw(60) << "     Have at least 1 charged particle with |d0| > 2 mm: " << pass_d0_e / allevents_e * 100  << "%" << std::endl;
+    std::cout << std::left << std::setw(62) << "     n_selected decay products ≥ 5: " << pass_decay_e / allevents_e * 100  << "%" << std::endl;
+    std::cout << std::left << std::setw(60) << "     Invariant mass > 10 GeV: " << pass_inv_m_e / allevents_e * 100  << "%" << std::endl;
     std::cout << "----------------------------------------------------------------------" << std::endl;
     std::cout << std::endl;
     

@@ -174,6 +174,69 @@ double get_cross_section(std::string sampleinfo){
 //    return column;
 //}
 
+// Get total expected events
+void get_n_expected_events(double &events, TTree* t, long nentries, double weight_nomc){
+    for(int j = 0; j < nentries; j++){
+        t->GetEntry(j);
+        float mcEventWeight;
+        t->SetBranchAddress("mcEventWeight", &mcEventWeight);
+        std::vector<double> * truthJet_Pt;
+        t->SetBranchAddress("truthJet_Pt", &truthJet_Pt);
+        
+        int truthJet_n = (int)truthJet_Pt->size();
+        double weight = weight_nomc * mcEventWeight;
+        int nDV_passSel = 0;
+        
+        //flags
+        UChar_t DRAW_pass_triggerFlags;
+        UChar_t DRAW_pass_DVJETS;
+//        UChar_t DRAW_pass_highPtJetFlag;
+        UChar_t BaselineSel_HighPtSR;
+        UChar_t BaselineSel_TracklessSR;
+        UChar_t DRAW_pass_doubleTracklessJetFlag;
+        UChar_t DRAW_pass_singleTracklessJetFlag;
+        t->SetBranchAddress("DRAW_pass_triggerFlags", &DRAW_pass_triggerFlags);
+        t->SetBranchAddress("DRAW_pass_DVJETS", &DRAW_pass_DVJETS);
+        t->SetBranchAddress("BaselineSel_HighPtSR", &BaselineSel_HighPtSR);
+//        t->SetBranchAddress("DRAW_pass_highPtJetFlag", &DRAW_pass_highPtJetFlag);
+        t->SetBranchAddress("BaselineSel_TracklessSR", &BaselineSel_TracklessSR);
+        t->SetBranchAddress("DRAW_pass_doubleTracklessJetFlag", &DRAW_pass_doubleTracklessJetFlag);
+        t->SetBranchAddress("DRAW_pass_singleTracklessJetFlag", &DRAW_pass_singleTracklessJetFlag);
+        std::vector<bool> * DV_passFiducialCut;
+        std::vector<bool> * DV_passDistCut;
+        std::vector<bool> * DV_passChiSqCut;
+        std::vector<bool> * DV_passMaterialVeto_strict;
+        std::vector<bool> * DV_passNTrkCut;
+        std::vector<bool> * DV_passMassCut;
+        std::vector<int> * DV_nTracksSel;
+        t->SetBranchAddress("DV_passFiducialCut", &DV_passFiducialCut);
+        t->SetBranchAddress("DV_passDistCut", &DV_passDistCut);
+        t->SetBranchAddress("DV_passChiSqCut", &DV_passChiSqCut);
+        t->SetBranchAddress("DV_passMaterialVeto_strict", &DV_passMaterialVeto_strict);
+        t->SetBranchAddress("DV_passNTrkCut", &DV_passNTrkCut);
+        t->SetBranchAddress("DV_passMassCut", &DV_passMassCut);
+        t->SetBranchAddress("DV_nTracksSel", &DV_nTracksSel);
+        
+        // trackless
+        if (DRAW_pass_triggerFlags != 1){continue;}
+        if (!(DRAW_pass_singleTracklessJetFlag == 1 || DRAW_pass_doubleTracklessJetFlag == 1)){continue;}
+        if (BaselineSel_HighPtSR != 0){continue;}
+        if (BaselineSel_TracklessSR != 1){continue;}
+        
+        // Loop through displaced vertices (DV) in event
+        for (int k = 0; k < truthJet_n; k++){
+            if (!(DV_passFiducialCut->at(k) && DV_passDistCut->at(k) && DV_passChiSqCut->at(k) && DV_passMaterialVeto_strict->at(k) && DV_passNTrkCut->at(k) && DV_passMassCut->at(k) && DV_nTracksSel->at(k) >= 2)){
+                continue;
+            }
+            nDV_passSel++;
+        }
+        
+        // At least 1 DV passing all selections
+        if (nDV_passSel >= 1){
+            events += weight;
+        }
+    }
+}
 
 int main(int argc, const char * argv[]) {
     //variables
@@ -187,16 +250,14 @@ int main(int argc, const char * argv[]) {
     int pass_d0 = 0;
     int pass_decay = 0;
     int pass_inv_m = 0;
+    double n_expected_events = 0;
     
-    double allevents_e = 0;
     double pass_JetSel_e = 0;
     double pass_R_e = 0;
     double pass_Dist_e = 0;
     double pass_d0_e = 0;
     double pass_decay_e = 0;
     double pass_inv_m_e = 0;
-    
-//    double jetSelEff = 0;
     
 //    std::vector< std::vector<std::string> > R_1150 = read_csv("HEPData-ins2628398-v1-event_efficiency_HighPt_R_1150_mm.csv");
 //    std::vector<double> sumpt_1150 = get_column(R_1150, 0);
@@ -216,13 +277,7 @@ int main(int argc, const char * argv[]) {
     TH1D* h_3870 = (TH1D*)file_3870->Get("event_efficiency_HighPt_R_3870_mm/Hist1D_y1");
     TH1D* h_1150 = (TH1D*)file_1150->Get("event_efficiency_HighPt_R_1150_mm/Hist1D_y1");
     TH1D* h_1150_3870 = (TH1D*)file_1150_3870->Get("event_efficiency_HighPt_R_1150_3870_mm/Hist1D_y1");
-    
-//    //testing
-//    for(int i = 0; i < effiency_1150_3870.size(); i++){
-//        std::cout << effiency_1150_3870[i] << " ";
-//    }
-//    std::cout << std::endl;
-    
+
                       
     //set dsid
 //    if(argc < 2){
@@ -237,7 +292,10 @@ int main(int argc, const char * argv[]) {
 //    else{
 //        tag = "v1";
 //    }
-    std::string dsid = "501190";
+//    std::string dsid = "501190";
+    std::string dsid;
+    std::cout << "Enter dsid: ";
+    std::cin >> dsid;
     
     // Gather inputs & cross-section
     std::vector<std::string> inputs = get_files(dsid, stop);
@@ -249,7 +307,7 @@ int main(int argc, const char * argv[]) {
     
     // Load tree and loop through events in ntuple
     for(int i  = 0; i < inputs.size(); i++){
-        TFile* inFile = TFile::Open(("/Users/catherine/Documents/URAP/501190/" + inputs.at(i)).c_str(), "READ");
+        TFile* inFile = TFile::Open(("/Users/catherine/Documents/URAP/" + dsid + "/" + inputs.at(i)).c_str(), "READ");
 
         // Load Tree
         TTree* t = (TTree*)inFile->Get("trees_SRDV_");
@@ -274,11 +332,77 @@ int main(int argc, const char * argv[]) {
             lumi = 58500.; //mc16e (2018)
         }
         else{
-            std::cout << "Run number, " << runNumber << " not recognized. Setting lumi=1" << std::endl;
+            std::cout << "Run number, " << runNumber << " not recognized. Setting lumi = 1" << std::endl;
         }
 
         // Calculate event weight
         double weight_nomc = lumi * xsec / total_sum_weights;
+        
+//        get_n_expected_events(n_expected_events, t, nentries, weight_nomc);
+        
+        // Get total expected events
+        for(int j = 0; j < nentries; j++){
+            t->GetEntry(j);
+            float mcEventWeight;
+            t->SetBranchAddress("mcEventWeight", &mcEventWeight);
+            std::vector<double> * truthJet_Pt;
+            t->SetBranchAddress("truthJet_Pt", &truthJet_Pt);
+
+            int DV_n;
+            t->SetBranchAddress("DV_n", &DV_n);
+//            int truthJet_n = (int)truthJet_Pt->size();
+            double weight = weight_nomc * mcEventWeight;
+            int nDV_passSel = 0;
+
+            //flags
+            UChar_t DRAW_pass_triggerFlags;
+            UChar_t DRAW_pass_DVJETS;
+    //        UChar_t DRAW_pass_highPtJetFlag;
+            UChar_t BaselineSel_HighPtSR;
+            UChar_t BaselineSel_TracklessSR;
+            UChar_t DRAW_pass_doubleTracklessJetFlag;
+            UChar_t DRAW_pass_singleTracklessJetFlag;
+            t->SetBranchAddress("DRAW_pass_triggerFlags", &DRAW_pass_triggerFlags);
+            t->SetBranchAddress("DRAW_pass_DVJETS", &DRAW_pass_DVJETS);
+            t->SetBranchAddress("BaselineSel_HighPtSR", &BaselineSel_HighPtSR);
+    //        t->SetBranchAddress("DRAW_pass_highPtJetFlag", &DRAW_pass_highPtJetFlag);
+            t->SetBranchAddress("BaselineSel_TracklessSR", &BaselineSel_TracklessSR);
+            t->SetBranchAddress("DRAW_pass_doubleTracklessJetFlag", &DRAW_pass_doubleTracklessJetFlag);
+            t->SetBranchAddress("DRAW_pass_singleTracklessJetFlag", &DRAW_pass_singleTracklessJetFlag);
+            std::vector<bool> * DV_passFiducialCut;
+            std::vector<bool> * DV_passDistCut;
+            std::vector<bool> * DV_passChiSqCut;
+            std::vector<bool> * DV_passMaterialVeto_strict;
+            std::vector<bool> * DV_passNTrkCut;
+            std::vector<bool> * DV_passMassCut;
+            std::vector<int> * DV_nTracksSel;
+            t->SetBranchAddress("DV_passFiducialCut", &DV_passFiducialCut);
+            t->SetBranchAddress("DV_passDistCut", &DV_passDistCut);
+            t->SetBranchAddress("DV_passChiSqCut", &DV_passChiSqCut);
+            t->SetBranchAddress("DV_passMaterialVeto_strict", &DV_passMaterialVeto_strict);
+            t->SetBranchAddress("DV_passNTrkCut", &DV_passNTrkCut);
+            t->SetBranchAddress("DV_passMassCut", &DV_passMassCut);
+            t->SetBranchAddress("DV_nTracksSel", &DV_nTracksSel);
+
+            // trackless
+            if (DRAW_pass_triggerFlags != 1){continue;}
+            if (!(DRAW_pass_singleTracklessJetFlag == 1 || DRAW_pass_doubleTracklessJetFlag == 1)){continue;}
+            if (BaselineSel_HighPtSR != 0){continue;}
+            if (BaselineSel_TracklessSR != 1){continue;}
+
+            // Loop through displaced vertices (DV) in event
+            for (int k = 0; k < DV_n; k++){
+                if (!(DV_passFiducialCut->at(k) && DV_passDistCut->at(k) && DV_passChiSqCut->at(k) && DV_passMaterialVeto_strict->at(k) && DV_passNTrkCut->at(k) && DV_passMassCut->at(k) && DV_nTracksSel->at(k) >= 2)){
+                    continue;
+                }
+                nDV_passSel++;
+            }
+
+            // At least 1 DV passing all selections
+            if (nDV_passSel >= 1){
+                n_expected_events += weight;
+            }
+        }
         
         // Loop through entries in TTree
         for(int j = 0; j < nentries; j++){
@@ -297,14 +421,12 @@ int main(int argc, const char * argv[]) {
             int n_pass_inv_m = 0;
             
             int sum_pt = 0;
-//            int sum_pt_1150 = 0;
-//            int sum_pt_1150_3870 = 0;
-//            int sum_pt_3870 = 0;
             float Rxy_max = 0;
             double efficiency;
             
             TLorentzVector p_tracks;
             
+            //other variables
             float mcEventWeight;
             t->SetBranchAddress("mcEventWeight", &mcEventWeight);
             std::vector<double> * truthJet_Pt;
@@ -380,22 +502,8 @@ int main(int argc, const char * argv[]) {
                     if(Rxy > Rxy_max){
                         Rxy_max = Rxy;
                     }
-                    
-                    //add sum P_t
-//                    if(Rxy < 1150){
-//                        sum_pt_1150 += truthJet_Pt->at(k);
-//                    }
-//                    else if (Rxy > 1150 && Rxy < 3870){
-//                        sum_pt_1150_3870 += truthJet_Pt->at(k);
-//                    }
-//                    else{
-//                        sum_pt_3870 += truthJet_Pt->at(k);
-//                    }
                 }
             }
-            
-            //test
-//            std::cout << "sum_pt = " << sum_pt << std::endl;
             
             //get efficiency
             if(Rxy_max < 1150){
@@ -407,14 +515,6 @@ int main(int argc, const char * argv[]) {
             else{
                 efficiency = h_3870->GetBinContent(h_3870->FindBin(sum_pt * 0.001));
             }
-//            double efficiency = h_1150->GetBinContent(h_1150->FindBin(sum_pt * 0.001));     // FIX ME
-//            double efficiency_1150 = h_1150->GetBinContent(h_1150->FindBin(sum_pt_1150 * 0.001));
-//            double efficiency_1150_3870 = h_1150->GetBinContent(h_1150_3870->FindBin(sum_pt_1150_3870 * 0.001));
-//            double efficiency_3870 = h_1150->GetBinContent(h_3870->FindBin(sum_pt_3870 * 0.001));
-            
-//            double efficiency = 1;
-            
-            allevents_e = allevents_e + (weight * efficiency);
             
             if(Pt137 < 4 && Pt101 < 5 && Pt83 < 6 && Pt55 < 7){continue;}
             if(LLP_Pt70 < 1 && LLP_Pt50 < 2){continue;}
@@ -451,7 +551,6 @@ int main(int argc, const char * argv[]) {
                     }
                 }
                 
-                
                 // Invariant mass > 10 GeV
                 double invariant_mass = p_tracks.M();
                 if(invariant_mass > 10){
@@ -479,7 +578,6 @@ int main(int argc, const char * argv[]) {
             pass_inv_m += weight;
             pass_inv_m_e = pass_inv_m_e + (weight * efficiency);
         }
-            
     }
         
     //print result
@@ -501,13 +599,29 @@ int main(int argc, const char * argv[]) {
     std::cout << "Total events: " << allevents << std::endl;
     std::cout << "Events passing jet selection: " << n_pass_JetSel << std::endl;
     std::cout << "----------------------------------------------------------------------" << std::endl;
-    std::cout << std::left << std::setw(60) << "Jet selection: " << pass_JetSel_e / allevents_e * 100  << "%" << std::endl;
-    std::cout << std::left << std::setw(60) << "     Rxy < 300 mm and |z| < 300 mm: " << pass_R_e / allevents_e * 100  << "%" << std::endl;
-    std::cout << std::left << std::setw(60) << "     Transverse distance from the primary vertex > 4 mm: " << pass_Dist_e / allevents_e * 100  << "%" << std::endl;
-    std::cout << std::left << std::setw(60) << "     Have at least 1 charged particle with |d0| > 2 mm: " << pass_d0_e / allevents_e * 100  << "%" << std::endl;
-    std::cout << std::left << std::setw(62) << "     n_selected decay products ≥ 5: " << pass_decay_e / allevents_e * 100  << "%" << std::endl;
-    std::cout << std::left << std::setw(60) << "     Invariant mass > 10 GeV: " << pass_inv_m_e / allevents_e * 100  << "%" << std::endl;
+    std::cout << std::left << std::setw(60) << "Jet selection: " << pass_JetSel_e / allevents * 100  << "%" << std::endl;
+    std::cout << std::left << std::setw(60) << "     Rxy < 300 mm and |z| < 300 mm: " << pass_R_e / allevents * 100  << "%" << std::endl;
+    std::cout << std::left << std::setw(60) << "     Transverse distance from the primary vertex > 4 mm: " << pass_Dist_e / allevents * 100  << "%" << std::endl;
+    std::cout << std::left << std::setw(60) << "     Have at least 1 charged particle with |d0| > 2 mm: " << pass_d0_e / allevents * 100  << "%" << std::endl;
+    std::cout << std::left << std::setw(62) << "     n_selected decay products ≥ 5: " << pass_decay_e / allevents * 100  << "%" << std::endl;
+    std::cout << std::left << std::setw(60) << "     Invariant mass > 10 GeV: " << pass_inv_m_e / allevents * 100  << "%" << std::endl;
     std::cout << "----------------------------------------------------------------------" << std::endl;
+    std::cout << std::endl;
+    
+    //expected
+    // 0.01 ns: 802.57; 0.032 ns: 1376.99; 0.1 ns: 1735.11; 0.32 ns: 757.08; 1 ns: 244.75; 10 ns: 0
+    std::cout << std::endl;
+    std::cout << std::left << std::setw(15) << "   lifetime" << std::setw(5) << "|" << "Expected effiency * acceptance" << std::endl;
+    std::cout << "------------------------------------------------------" << std::endl;
+    std::cout << std::left << std::setw(15) << "   0.01 ns" << std::setw(10) << "|" << 802.57 / (xsec * 1000 * 139) * 100 << "%" << std::endl;
+    std::cout << std::left << std::setw(15) << "   0.032 ns" << std::setw(10) << "|" << 1376.99 / (xsec * 1000 * 139) * 100 << "%" << std::endl;
+    std::cout << std::left << std::setw(15) << "   0.1 ns" << std::setw(10) << "|" << 1735 / (xsec * 1000 * 139) * 100 << "%" << std::endl;
+    std::cout << std::left << std::setw(15) << "   0.32 ns" << std::setw(10) << "|" << 757.08 / (xsec * 1000 * 139) * 100 << "%" << std::endl;
+    std::cout << std::left << std::setw(15) << "   1 ns" << std::setw(10) << "|" << 244 / (xsec * 1000 * 139) * 100 << "%" << std::endl;
+    std::cout << std::left << std::setw(15) << "   10 ns" << std::setw(10) << "|" << 0 / (xsec * 1000 * 139) * 100 << "%" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << std::endl << "Expected effiency * acceptance = " << n_expected_events / (xsec * 1000 * 139) * 100 << "%" << std::endl;
     std::cout << std::endl;
     
     // close file

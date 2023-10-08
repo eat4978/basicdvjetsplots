@@ -5,7 +5,6 @@
 #include <vector>
 #include <cmath>
 #include <sstream>
-#include <stdlib.h>
 
 #include "TROOT.h"
 #include "TFile.h"
@@ -14,15 +13,6 @@
 #include "TH1.h"
 #include "TLegend.h"
 #include <TLorentzVector.h>
-
-struct File_Info{
-    std::string dsid;
-    double lifetime;
-    double mass;
-    double sim_a;
-    double sim_full;
-    double exp_full;
-};
 
 // Helper functions
 // Get sample file
@@ -52,7 +42,7 @@ std::vector<std::string> get_files(std::string dsid, bool &stop){
 }
 
 // Get sample information
-std::string get_sample_info(std::string dsid, bool &stop, double &lifetime, int &mass){
+std::string get_sample_info(std::string dsid, bool &stop, double &lifetime){
     std::ifstream fin("signal_key.txt");
     char* token;
     char buf[1000];
@@ -95,11 +85,6 @@ std::string get_sample_info(std::string dsid, bool &stop, double &lifetime, int 
                 }
             }
             
-            //get mass
-            unsigned long secondLast = tmp3.rfind('_', first - 1);
-            std::string m = tmp3.substr(secondLast + 1, first - secondLast - 1);
-            mass = std::atoi(m.c_str());
-
             fin.close();
             
             lifetime = std::stod(tao);
@@ -123,23 +108,20 @@ double get_cross_section(std::string sampleinfo){
         if (sampleinfo.find("_100_") != std::string::npos){
             cross_x = 17.125;
         }
-        else if (sampleinfo.find("_300_") != std::string::npos){
+        else if (sampleinfo.find("_500_") != std::string::npos){
             cross_x = 0.3003;
         }
-        else if (sampleinfo.find("_500_") != std::string::npos){
-            cross_x = 0.0361;
-        }
         else if (sampleinfo.find("_700_") != std::string::npos){
-            cross_x = 0.00738;
+            cross_x = 0.3003;
         }
         else if (sampleinfo.find("_900_") != std::string::npos){
-            cross_x = 0.00192;
+            cross_x = 0.00738;
         }
         else if (sampleinfo.find("_1100_") != std::string::npos){
-            cross_x = 0.000571;
+            cross_x = 0.0019200;
         }
         else if (sampleinfo.find("_1300_") != std::string::npos){
-            cross_x = 0.000184;
+            cross_x = 0.000570676;
         }
         else if (sampleinfo.find("_1500_") != std::string::npos){
             cross_x = 6.204689e-05;
@@ -159,6 +141,92 @@ double get_cross_section(std::string sampleinfo){
     return cross_x;
 }
 
+//std::vector< std::vector<std::string> > read_csv(std::string fileName){
+//    std::vector<std::string> row;
+//    std::vector< std::vector<std::string> > data;
+//    std::string line, cell;
+//    std::ifstream fin(fileName.c_str());
+//
+//    if(!fin.is_open()){
+//        std::cout << "Error. Unable to open the file " << fileName << std::endl;
+//        fin.close();
+//        return data;
+//    }
+//
+//    while(std::getline(fin, line)){
+//        row.clear();
+//        if(line[0] == '#'){
+//            continue;
+//        }
+//        std::stringstream str(line);
+//        while(getline(str, cell, ',')){
+//            row.push_back(cell);
+//        }
+//        data.push_back(row);
+//    }
+//
+//    // delete title line
+//    data.erase(data.begin());
+//    data.pop_back();
+//
+////    // testing
+////    for(int i = 0; i < data.size(); i++){
+////        for(int j = 0; j < data[i].size(); j++){
+////            std::cout << data[i][j] << " ";
+////        }
+////        std::cout<< "\n";
+////    }
+//
+//    fin.close();
+//    return data;
+//}
+
+//std::vector<double> get_column(std::vector< std::vector<std::string> > data, int col){
+//    std::vector<double> column;
+//
+//    for(int i = 0; i < data.size(); i++){
+//        column.push_back(std::stof(data[i][col]));
+//    }
+//
+//    return column;
+//}
+
+//selection sort for pair vectors
+void sort(std::vector<double> &lifetime, std::vector<std::string> &dsid, std::vector<double> &simulated, std::vector<double> &expected){
+    int startScan, minIndex;
+    double minValue, minSimulated, minExpected;
+    std::string minDsid;
+
+    for(startScan = 0; startScan < (lifetime.size() - 1); startScan++){
+        minIndex = startScan;
+        minValue = lifetime[startScan];
+        minSimulated = simulated[startScan];
+        minExpected = expected[startScan];
+        minDsid = dsid[startScan];
+        
+        for(int index = startScan + 1; index < lifetime.size(); index++){
+            if(lifetime[index] < minValue){
+                minValue = lifetime[index];
+                minSimulated = simulated[index];
+                minExpected = expected[index];
+                minDsid = dsid[index];
+                minIndex = index;
+            }
+        }
+        
+        lifetime[minIndex] = lifetime[startScan];
+        lifetime[startScan] = minValue;
+        
+        dsid[minIndex] = dsid[startScan];
+        dsid[startScan] = minDsid;
+        
+        simulated[minIndex] = simulated[startScan];
+        simulated[startScan] = minSimulated;
+        
+        expected[minIndex] = expected[startScan];
+        expected[startScan] = minExpected;
+    }
+}
 
 // Get total expected events
 void get_n_expected_events(double &events, TTree* t, long nentries, double weight_nomc){
@@ -226,8 +294,11 @@ void get_n_expected_events(double &events, TTree* t, long nentries, double weigh
 
 int main(int argc, const char * argv[]) {
     // Variables
+    std::vector<std::string> dsid_list;
+    std::vector<double> lifetime_list;
     std::string user_input;
-    std::vector<File_Info> file_list;
+    std::vector<double> simulated;
+    std::vector<double> expected;
     
     // get DSID
     while(true){
@@ -236,26 +307,22 @@ int main(int argc, const char * argv[]) {
         if(user_input == "q" || user_input == "Q"){
             break;
         }
-        File_Info newFile;
-        newFile.dsid = user_input;
-        file_list.push_back(newFile);
+        dsid_list.push_back(user_input);
     }
     
-    for(int file = 0; file < file_list.size(); file++){
+    for(int file = 0; file < dsid_list.size(); file++){
         //variables
         std::string tag;
         bool stop = false;
         double lifetime;
-        int mass;
-        
         // counters
-        double allevents = 0;
-        double n_pass_JetSel = 0;
-        double pass_R = 0;
-        double pass_Dist = 0;
-        double pass_d0 = 0;
-        double pass_decay = 0;
-        double pass_inv_m = 0;
+        int allevents = 0;
+        int n_pass_JetSel = 0;
+        int pass_R = 0;
+        int pass_Dist = 0;
+        int pass_d0 = 0;
+        int pass_decay = 0;
+        int pass_inv_m = 0;
         double n_expected_events = 0;
         
         double pass_JetSel_e = 0;
@@ -264,6 +331,18 @@ int main(int argc, const char * argv[]) {
         double pass_d0_e = 0;
         double pass_decay_e = 0;
         double pass_inv_m_e = 0;
+        
+    //    std::vector< std::vector<std::string> > R_1150 = read_csv("HEPData-ins2628398-v1-event_efficiency_HighPt_R_1150_mm.csv");
+    //    std::vector<double> sumpt_1150 = get_column(R_1150, 0);
+    //    std::vector<double> effiency_1150 = get_column(R_1150, 3);
+    //
+    //    std::vector< std::vector<std::string> > R_1150_3870 = read_csv("HEPData-ins2628398-v1-event_efficiency_HighPt_R_1150_3870_mm.csv");
+    //    std::vector<double> sumpt_1150_3870 = get_column(R_1150_3870, 0);
+    //    std::vector<double> effiency_1150_3870 = get_column(R_1150_3870, 3);
+    //
+    //    std::vector< std::vector<std::string> > R_3870 = read_csv("HEPData-ins2628398-v1-event_efficiency_HighPt_R_3870_mm.csv");
+    //    std::vector<double> sumpt_3870 = get_column(R_3870, 0);
+    //    std::vector<double> effiency_3870 = get_column(R_3870, 3);
         
         TFile* file_3870 = new TFile("HEPData-ins2628398-v1-event_efficiency_HighPt_R_3870_mm.root");
         TFile* file_1150 = new TFile("HEPData-ins2628398-v1-event_efficiency_HighPt_R_1150_mm.root");
@@ -288,16 +367,18 @@ int main(int argc, const char * argv[]) {
     //    }
     //    std::string dsid = "501190";
         
+//        std::string dsid;
+//        std::cout << "Enter dsid: ";
+//        std::cin >> dsid;
         
-        std::string dsid = file_list.at(file).dsid;
+        std::string dsid = dsid_list.at(file);
         
         // Gather inputs & cross-section
         std::vector<std::string> inputs = get_files(dsid, stop);
         if(stop){ return 1;}
-        std::string info = get_sample_info(dsid, stop, lifetime, mass);
+        std::string info = get_sample_info(dsid, stop, lifetime);
         if(stop){ return 1;}
-        file_list.at(file).mass = mass;
-        file_list.at(file).lifetime = lifetime;
+        lifetime_list.push_back(lifetime);
         std::cout << "Analyzing DSID " << dsid << " with sample info = " << info << std::endl;
         double xsec = get_cross_section(info);
         
@@ -512,7 +593,6 @@ int main(int argc, const char * argv[]) {
                     efficiency = h_3870->GetBinContent(h_3870->FindBin(sum_pt * 0.001));
                 }
                 
-                
                 if(Pt137 < 4 && Pt101 < 5 && Pt83 < 6 && Pt55 < 7){continue;}
                 if(LLP_Pt70 < 1 && LLP_Pt50 < 2){continue;}
                 n_pass_JetSel += weight;
@@ -583,12 +663,12 @@ int main(int argc, const char * argv[]) {
         std::cout << "Total events: " << allevents << std::endl;
         std::cout << "Events passing jet selection: " << n_pass_JetSel << std::endl;
         std::cout << "-----------------------------------------------------------------------" << std::endl;
-        std::cout << std::left << std::setw(60) << "Jet selection: " << n_pass_JetSel / allevents * 100  << "%" << std::endl;
-        std::cout << std::left << std::setw(60) << "     Rxy < 300 mm and |z| < 300 mm: " << pass_R / allevents * 100  << "%" << std::endl;
-        std::cout << std::left << std::setw(60) << "     Transverse distance from the primary vertex > 4 mm: " << pass_Dist / allevents * 100  << "%" << std::endl;
-        std::cout << std::left << std::setw(60) << "     Have at least 1 charged particle with |d0| > 2 mm: " << pass_d0 / allevents * 100  << "%" << std::endl;
-        std::cout << std::left << std::setw(62) << "     n_selected decay products ≥ 5: " << pass_decay / allevents * 100  << "%" << std::endl;
-        std::cout << std::left << std::setw(60) << "     Invariant mass > 10 GeV: " << pass_inv_m / allevents * 100  << "%" << std::endl;
+        std::cout << std::left << std::setw(60) << "Jet selection: " << (double)n_pass_JetSel / allevents * 100  << "%" << std::endl;
+        std::cout << std::left << std::setw(60) << "     Rxy < 300 mm and |z| < 300 mm: " << (double)pass_R / allevents * 100  << "%" << std::endl;
+        std::cout << std::left << std::setw(60) << "     Transverse distance from the primary vertex > 4 mm: " << (double)pass_Dist / allevents * 100  << "%" << std::endl;
+        std::cout << std::left << std::setw(60) << "     Have at least 1 charged particle with |d0| > 2 mm: " << (double)pass_d0 / allevents * 100  << "%" << std::endl;
+        std::cout << std::left << std::setw(62) << "     n_selected decay products ≥ 5: " << (double)pass_decay / allevents * 100  << "%" << std::endl;
+        std::cout << std::left << std::setw(60) << "     Invariant mass > 10 GeV: " << (double)pass_inv_m / allevents * 100  << "%" << std::endl;
         std::cout << "-----------------------------------------------------------------------" << std::endl;
         
         // with effiency
@@ -605,7 +685,19 @@ int main(int argc, const char * argv[]) {
         std::cout << std::left << std::setw(60) << "     Invariant mass > 10 GeV: " << pass_inv_m_e / allevents * 100  << "%" << std::endl;
         std::cout << "-----------------------------------------------------------------------" << std::endl;
         std::cout << std::endl;
-
+        
+        //expected
+        // 0.01 ns: 802.57; 0.032 ns: 1376.99; 0.1 ns: 1735.11; 0.32 ns: 757.08; 1 ns: 244.75; 10 ns: 0
+//        std::cout << std::endl;
+//        std::cout << std::left << std::setw(15) << "   lifetime" << std::setw(5) << "|" << "Expected effiency * acceptance" << std::endl;
+//        std::cout << "------------------------------------------------------" << std::endl;
+//        std::cout << std::left << std::setw(15) << "   0.01 ns" << std::setw(10) << "|" << 802.57 / (xsec * 1000 * 139) * 100 << "%" << std::endl;
+//        std::cout << std::left << std::setw(15) << "   0.032 ns" << std::setw(10) << "|" << 1376.99 / (xsec * 1000 * 139) * 100 << "%" << std::endl;
+//        std::cout << std::left << std::setw(15) << "   0.1 ns" << std::setw(10) << "|" << 1735 / (xsec * 1000 * 139) * 100 << "%" << std::endl;
+//        std::cout << std::left << std::setw(15) << "   0.32 ns" << std::setw(10) << "|" << 757.08 / (xsec * 1000 * 139) * 100 << "%" << std::endl;
+//        std::cout << std::left << std::setw(15) << "   1 ns" << std::setw(10) << "|" << 244 / (xsec * 1000 * 139) * 100 << "%" << std::endl;
+//        std::cout << std::left << std::setw(15) << "   10 ns" << std::setw(10) << "|" << 0 / (xsec * 1000 * 139) * 100 << "%" << std::endl;
+//        std::cout << std::endl;
         
         std::cout << "Expected effiency * acceptance = " << n_expected_events / (xsec * 1000 * 139) * 100 << "%" << std::endl;
         std::cout << std::endl;
@@ -613,10 +705,8 @@ int main(int argc, const char * argv[]) {
         std::cout << "-------------------------------------------------------------------------------------------" << std::endl << std::endl;
         
         
-        file_list.at(file).sim_a = pass_inv_m / allevents * 100;
-        file_list.at(file).sim_full = pass_inv_m_e / allevents * 100;
-        file_list.at(file).exp_full = n_expected_events / (xsec * 1000 * 139) * 100;
-
+        simulated.push_back(pass_inv_m_e / allevents * 100);
+        expected.push_back(n_expected_events / (xsec * 1000 * 139) * 100);
         
         // close file
         file_3870->Close();
@@ -624,23 +714,13 @@ int main(int argc, const char * argv[]) {
         file_1150_3870->Close();
     }
     
-    //sort
-    auto compare = [](const File_Info& a, const File_Info& b) {
-        if (a.mass == b.mass) {
-            // If mass is the same, compare by lifetime
-            return a.lifetime < b.lifetime;
-        }
-        // Otherwise, compare by mass
-        return a.mass < b.mass;
-    };
-
-    std::sort(file_list.begin(), file_list.end(), compare);
+    sort(lifetime_list, dsid_list, simulated, expected);
     
-    std::cout << std::left << std::setw(9) << "mass" << std::setw(12) << "lifetime" << std::setw(10) << "dsid" << std::setw(15) << "simulated" << std::setw(15) << "expected" << std::setw(15) << "percent error" << std::endl;
-    std::cout << "--------------------------------------------------------------------------" << std::endl;
-    for(int i = 0; i < file_list.size(); i++){
-        double error = abs(file_list.at(i).sim_full - file_list.at(i).exp_full) / file_list.at(i).exp_full * 100;
-        std::cout << std::left << std::setw(9) << file_list.at(i).mass << std::setw(12) << file_list.at(i).lifetime << std::setw(10) << file_list.at(i).dsid << std::setw(15) << file_list.at(i).sim_full << std::setw(15) << file_list.at(i).exp_full << std::setw(15) << error << std::endl;
+    std::cout << std::left << std::setw(10) << "lifetime" << std::setw(10) << "dsid" << std::setw(15) << "simulated" << std::setw(15) << "expected" << std::setw(15) << "percent error" << std::endl;
+    std::cout << "----------------------------------------------------------------" << std::endl;
+    for(int i = 0; i < lifetime_list.size(); i++){
+        double error = abs(simulated.at(i) - expected.at(i)) / expected.at(i) * 100;
+        std::cout << std::left << std::setw(10) << lifetime_list.at(i) << std::setw(10) << dsid_list.at(i) << std::setw(15) << simulated.at(i) << std::setw(15) << expected.at(i) << std::setw(15) << error << std::endl;
     }
     
     std::cout << std::endl;

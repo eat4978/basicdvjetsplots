@@ -1,0 +1,45 @@
+#include <iostream>
+#include "TApplication.h"
+#include "TCanvas.h"
+#include "TGraph.h"
+#include "TH1.h"
+#include <vector>
+
+int main(int argc, const char * argv[]) {
+    // Create a TApplication so that we can get plot the histogram
+    TApplication* myApp = new TApplication("myApp", 0, 0);
+    TH1F* h1 = new TH1F("h1", "Histogram 1; x; y", 100, -10, 10);
+    h1->FillRandom("gaus", 1000);
+
+    // Create some vector information
+    std::vector<double> x(100), y(100);
+
+    for(int i = 0; i < x.size(); i++) {
+        x[i] = i * (10.0/x.size());
+        y[i] = std::cos(x[i]);
+    }
+
+    // Create a TGraph
+    TGraph* graph = new TGraph((int)(x.size()), &x[0], &y[0]);
+
+    // Create a canvas and draw the graph
+    TCanvas* canvas = new TCanvas("canvas","canvas");
+//    graph->SetLineColor(8);
+//    graph->SetLineWidth(4);
+//    graph->SetMarkerColor(4);
+//    graph->SetMarkerSize(0.5);
+//    graph->SetMarkerStyle(20);
+    graph->Draw("ACP");
+    h1->Draw();
+    canvas->Update();
+
+    // Run the TApplication to produce all of the plots
+    myApp->Run();
+    
+    delete myApp;
+    delete graph;
+    delete canvas;
+    delete h1;
+    
+    return 0;
+}

@@ -242,6 +242,33 @@ int main(int argc, const char * argv[]) {
         file_list.push_back(newFile);
     }
     
+    //vertex effiency files
+    TFile* file_eff_vt_22 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_22_mm.root");
+    TFile* file_eff_vt_22_25 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_22_25_mm.root");
+    TFile* file_eff_vt_25_29 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_25_29_mm.root");
+    TFile* file_eff_vt_29_38 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_29_38_mm.root");
+    TFile* file_eff_vt_38_46 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_38_46_mm.root");
+    TFile* file_eff_vt_46_73 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_46_73_mm.root");
+    TFile* file_eff_vt_73_84 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_73_84_mm.root");
+    TFile* file_eff_vt_84_111 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_84_111_mm.root");
+    TFile* file_eff_vt_111_120 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_111_120_mm.root");
+    TFile* file_eff_vt_120_145 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_120_145_mm.root");
+    TFile* file_eff_vt_145_180 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_145_180_mm.root");
+    TFile* file_eff_vt_180_300 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_180_300_mm.root");
+
+    TH2D* eff_vt_22 = (TH2D*)file_eff_vt_22->Get("vertex_efficiency_R_22_mm/Hist2D_y1");
+    TH2D* eff_vt_22_25 = (TH2D*)file_eff_vt_22_25->Get("vertex_efficiency_R_22_25_mm/Hist2D_y1");
+    TH2D* eff_vt_25_29 = (TH2D*)file_eff_vt_25_29->Get("vertex_efficiency_R_25_29_mm/Hist2D_y1");
+    TH2D* eff_vt_29_38 = (TH2D*)file_eff_vt_29_38->Get("vertex_efficiency_R_29_38_mm/Hist2D_y1");
+    TH2D* eff_vt_38_46 = (TH2D*)file_eff_vt_38_46->Get("vertex_efficiency_R_38_46_mm/Hist2D_y1");
+    TH2D* eff_vt_46_73 = (TH2D*)file_eff_vt_46_73->Get("vertex_efficiency_R_46_73_mm/Hist2D_y1");
+    TH2D* eff_vt_73_84 = (TH2D*)file_eff_vt_73_84->Get("vertex_efficiency_R_73_84_mm/Hist2D_y1");
+    TH2D* eff_vt_84_111 = (TH2D*)file_eff_vt_84_111->Get("vertex_efficiency_R_84_111_mm/Hist2D_y1");
+    TH2D* eff_vt_111_120 = (TH2D*)file_eff_vt_111_120->Get("vertex_efficiency_R_111_120_mm/Hist2D_y1");
+    TH2D* eff_vt_120_145 = (TH2D*)file_eff_vt_120_145->Get("vertex_efficiency_R_120_145_mm/Hist2D_y1");
+    TH2D* eff_vt_145_180 = (TH2D*)file_eff_vt_145_180->Get("vertex_efficiency_R_145_180_mm/Hist2D_y1");
+    TH2D* eff_vt_180_300 = (TH2D*)file_eff_vt_180_300->Get("vertex_efficiency_R_180_300_mm/Hist2D_y1");
+    
     for(int file = 0; file < file_list.size(); file++){
         //variables
         std::string tag;
@@ -274,34 +301,6 @@ int main(int argc, const char * argv[]) {
         TH1D* h_3870 = (TH1D*)file_3870->Get("event_efficiency_Trackless_R_3870_mm/Hist1D_y1");
         TH1D* h_1150 = (TH1D*)file_1150->Get("event_efficiency_Trackless_R_1150_mm/Hist1D_y1");
         TH1D* h_1150_3870 = (TH1D*)file_1150_3870->Get("event_efficiency_Trackless_R_1150_3870_mm/Hist1D_y1");
-        
-        //vertex effiency files
-        TFile* file_eff_vt_22 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_22_mm.root");
-        TFile* file_eff_vt_22_25 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_22_25_mm.root");
-        TFile* file_eff_vt_25_29 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_25_29_mm.root");
-        TFile* file_eff_vt_29_38 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_29_38_mm.root");
-        TFile* file_eff_vt_38_46 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_38_46_mm.root");
-        TFile* file_eff_vt_46_73 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_46_73_mm.root");
-        TFile* file_eff_vt_73_84 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_73_84_mm.root");
-        TFile* file_eff_vt_84_111 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_84_111_mm.root");
-        TFile* file_eff_vt_111_120 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_111_120_mm.root");
-        TFile* file_eff_vt_120_145 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_120_145_mm.root");
-        TFile* file_eff_vt_145_180 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_145_180_mm.root");
-        TFile* file_eff_vt_180_300 = new TFile("HEPData-ins2628398-v1-vertex_efficiency_R_180_300_mm.root");
-        
-        TH2D* eff_vt_22 = (TH2D*)file_eff_vt_22->Get("vertex_efficiency_R_22_mm/Hist2D_y1");
-        TH2D* eff_vt_22_25 = (TH2D*)file_eff_vt_22_25->Get("vertex_efficiency_R_22_25_mm/Hist2D_y1");
-        TH2D* eff_vt_25_29 = (TH2D*)file_eff_vt_25_29->Get("vertex_efficiency_R_25_29_mm/Hist2D_y1");
-        TH2D* eff_vt_29_38 = (TH2D*)file_eff_vt_29_38->Get("vertex_efficiency_R_29_38_mm/Hist2D_y1");
-        TH2D* eff_vt_38_46 = (TH2D*)file_eff_vt_38_46->Get("vertex_efficiency_R_38_46_mm/Hist2D_y1");
-        TH2D* eff_vt_46_73 = (TH2D*)file_eff_vt_46_73->Get("vertex_efficiency_R_46_73_mm/Hist2D_y1");
-        TH2D* eff_vt_73_84 = (TH2D*)file_eff_vt_73_84->Get("vertex_efficiency_R_73_84_mm/Hist2D_y1");
-        TH2D* eff_vt_84_111 = (TH2D*)file_eff_vt_84_111->Get("vertex_efficiency_R_84_111_mm/Hist2D_y1");
-        TH2D* eff_vt_111_120 = (TH2D*)file_eff_vt_111_120->Get("vertex_efficiency_R_111_120_mm/Hist2D_y1");
-        TH2D* eff_vt_120_145 = (TH2D*)file_eff_vt_120_145->Get("vertex_efficiency_R_120_145_mm/Hist2D_y1");
-        TH2D* eff_vt_145_180 = (TH2D*)file_eff_vt_145_180->Get("vertex_efficiency_R_145_180_mm/Hist2D_y1");
-        TH2D* eff_vt_180_300 = (TH2D*)file_eff_vt_180_300->Get("vertex_efficiency_R_180_300_mm/Hist2D_y1");
-
                           
         //set dsid
     //    if(argc < 2){
@@ -334,7 +333,8 @@ int main(int argc, const char * argv[]) {
         // Load tree and loop through events in ntuple
         for(int i  = 0; i < inputs.size(); i++){
             TFile* inFile = TFile::Open(("/Users/catherine/Documents/URAP/" + dsid + "/" + inputs.at(i)).c_str(), "READ");
-
+            std::cout << "/Users/catherine/Documents/URAP/" << dsid << "/" << inputs.at(i).c_str() << " opened" << std::endl;
+            
             // Load Tree
             TTree* t = (TTree*)inFile->Get("trees_SRDV_");
             long nentries = t->GetEntries();
@@ -342,38 +342,20 @@ int main(int argc, const char * argv[]) {
             // Get weight information
             TH1D* metadata = (TH1D*)inFile->Get("MetaData_EventCount");
             double total_sum_weights = metadata->GetBinContent(3);
+            std::cout << "nentries = " << nentries << "; total sum weights = " << total_sum_weights << std::endl;
             
             // Determine luminosity of this sample, pb^-1
             UInt_t runNumber;
             t->SetBranchAddress("runNumber", &runNumber);
-            t->GetEntry(0);
-            double lumi = 1.0;
-            if(runNumber == 284500){
-                lumi = 36200.; //mc16a (2015/16)
-            }
-            else if(runNumber == 300000){
-                lumi = 44300.; //mc16d (2017)
-            }
-            else if(runNumber == 310000){
-                lumi = 58500.; //mc16e (2018)
-            }
-            else{
-                std::cout << "Run number, " << runNumber << " not recognized. Setting lumi = 1" << std::endl;
-            }
-
-            // Calculate event weight
-            double weight_nomc = lumi * xsec / total_sum_weights;
-            
-    //        get_n_expected_events(n_expected_events, t, nentries, weight_nomc);
             
             float mcEventWeight;
             t->SetBranchAddress("mcEventWeight", &mcEventWeight);
-            std::vector<double> * truthJet_Pt;
+            std::vector<double> * truthJet_Pt;              //CRASH AFTER THIS
             t->SetBranchAddress("truthJet_Pt", &truthJet_Pt);
-
+            
             int DV_n;
             t->SetBranchAddress("DV_n", &DV_n);
-
+            
             //flags
             UChar_t DRAW_pass_triggerFlags;
             UChar_t DRAW_pass_DVJETS;
@@ -403,6 +385,54 @@ int main(int argc, const char * argv[]) {
             t->SetBranchAddress("DV_passNTrkCut", &DV_passNTrkCut);
             t->SetBranchAddress("DV_passMassCut", &DV_passMassCut);
             t->SetBranchAddress("DV_nTracksSel", &DV_nTracksSel);
+            
+            std::vector<float> * x;
+            t->SetBranchAddress("truthSparticle_VtxX", &x);
+            std::vector<float> * y;
+            t->SetBranchAddress("truthSparticle_VtxY", &y);
+            std::vector<float> * z;
+            t->SetBranchAddress("truthSparticle_VtxZ", &z);
+            std::vector<float> * x_LLP;
+            t->SetBranchAddress("truthJet_matchedLLP_x", &x_LLP);
+            std::vector<float> * y_LLP;
+            t->SetBranchAddress("truthJet_matchedLLP_y", &y_LLP);
+            std::vector<int> * truthSparticle_Barcode;
+            t->SetBranchAddress("truthSparticle_Barcode", &truthSparticle_Barcode);
+            std::vector<int> * truth_LLPChild_Parent_barcode;
+            t->SetBranchAddress("truth_LLPChild_Parent_barcode", &truth_LLPChild_Parent_barcode);
+            std::vector<double> * truth_LLPChild_d0;
+            t->SetBranchAddress("truth_LLPChild_d0", &truth_LLPChild_d0);
+            std::vector<double> * truth_LLPChild_Charge;
+            t->SetBranchAddress("truth_LLPChild_Charge", &truth_LLPChild_Charge);
+            std::vector<double> * truth_LLPChild_Pt;
+            t->SetBranchAddress("truth_LLPChild_Pt", &truth_LLPChild_Pt);
+            std::vector<double> * truth_LLPChild_Eta;
+            t->SetBranchAddress("truth_LLPChild_Eta", &truth_LLPChild_Eta);
+            std::vector<double> * truth_LLPChild_Phi;
+            t->SetBranchAddress("truth_LLPChild_Phi", &truth_LLPChild_Phi);
+            std::vector<double> * truth_LLPChild_Status;
+            t->SetBranchAddress("truth_LLPChild_Status", &truth_LLPChild_Status);
+            
+            t->GetEntry(0);
+            
+            double lumi = 1.0;
+            if(runNumber == 284500){
+                lumi = 36200.; //mc16a (2015/16)
+            }
+            else if(runNumber == 300000){
+                lumi = 44300.; //mc16d (2017)
+            }
+            else if(runNumber == 310000){
+                lumi = 58500.; //mc16e (2018)
+            }
+            else{
+                std::cout << "Run number, " << runNumber << " not recognized. Setting lumi = 1" << std::endl;
+            }
+
+            // Calculate event weight
+            double weight_nomc = lumi * xsec / total_sum_weights;
+            
+            //        get_n_expected_events(n_expected_events, t, nentries, weight_nomc);
             
             
             /*****************************************************************************************************
@@ -447,38 +477,6 @@ int main(int argc, const char * argv[]) {
              *****************************************************************************************************
              *****************************************************************************************************
              */
-            
-            //variables
-//                float mcEventWeight;
-//                t->SetBranchAddress("mcEventWeight", &mcEventWeight);
-//                std::vector<double> * truthJet_Pt;
-//                t->SetBranchAddress("truthJet_Pt", &truthJet_Pt);
-            std::vector<float> * x;
-            t->SetBranchAddress("truthSparticle_VtxX", &x);
-            std::vector<float> * y;
-            t->SetBranchAddress("truthSparticle_VtxY", &y);
-            std::vector<float> * z;
-            t->SetBranchAddress("truthSparticle_VtxZ", &z);
-            std::vector<float> * x_LLP;
-            t->SetBranchAddress("truthJet_matchedLLP_x", &x_LLP);
-            std::vector<float> * y_LLP;
-            t->SetBranchAddress("truthJet_matchedLLP_y", &y_LLP);
-            std::vector<int> * truthSparticle_Barcode;
-            t->SetBranchAddress("truthSparticle_Barcode", &truthSparticle_Barcode);
-            std::vector<int> * truth_LLPChild_Parent_barcode;
-            t->SetBranchAddress("truth_LLPChild_Parent_barcode", &truth_LLPChild_Parent_barcode);
-            std::vector<double> * truth_LLPChild_d0;
-            t->SetBranchAddress("truth_LLPChild_d0", &truth_LLPChild_d0);
-            std::vector<double> * truth_LLPChild_Charge;
-            t->SetBranchAddress("truth_LLPChild_Charge", &truth_LLPChild_Charge);
-            std::vector<double> * truth_LLPChild_Pt;
-            t->SetBranchAddress("truth_LLPChild_Pt", &truth_LLPChild_Pt);
-            std::vector<double> * truth_LLPChild_Eta;
-            t->SetBranchAddress("truth_LLPChild_Eta", &truth_LLPChild_Eta);
-            std::vector<double> * truth_LLPChild_Phi;
-            t->SetBranchAddress("truth_LLPChild_Phi", &truth_LLPChild_Phi);
-            std::vector<double> * truth_LLPChild_Status;
-            t->SetBranchAddress("truth_LLPChild_Status", &truth_LLPChild_Status);
             
             // Loop through entries in TTree
             for(int j = 0; j < nentries; j++){
@@ -590,6 +588,11 @@ int main(int argc, const char * argv[]) {
                                 n_pass_d0++;
                             }
                             
+                            // n_selected decay products ≥ 5
+//                            if(truth_LLPChild_Charge->at(l) != 0 && truth_LLPChild_Pt->at(l) / abs(truth_LLPChild_Charge->at(l)) > 1){
+//                                n_pass_decay++;
+//                            }
+                            
                             if(truth_LLPChild_Charge->at(l) != 0 && truth_LLPChild_Pt->at(l) / abs(truth_LLPChild_Charge->at(l)) > 1 && truth_LLPChild_Status->at(l) > 0){
                                 n_pass_decay++;
                             }
@@ -645,7 +648,10 @@ int main(int argc, const char * argv[]) {
                     else{
                         eff_vertex = eff_vt_180_300->GetBinContent(eff_vt_180_300->GetXaxis()->FindBin(invariant_mass), eff_vt_180_300->GetYaxis()->FindBin(n_pass_decay));
                     }
-                    
+//                    else{
+//                        eff_vertex = 0;
+//                    }
+
                     Aeff_vertex = Aeff_vertex * ( 1 - eff_vertex);
                 }
                 
@@ -671,6 +677,8 @@ int main(int argc, const char * argv[]) {
                 pass_inv_m += weight;
                 pass_inv_m_e = pass_inv_m_e + (weight * efficiency * Aeff_vertex);
             }
+            
+            inFile->Close();
         }
             
         //print result
@@ -714,41 +722,42 @@ int main(int argc, const char * argv[]) {
         file_list.at(file).exp_full = n_expected_events / (xsec * 1000 * 139) * 100;
 
         
-        // close file
+//        // close file
         file_3870->Close();
         file_1150->Close();
         file_1150_3870->Close();
         
-        file_eff_vt_22->Close();
-        file_eff_vt_22_25->Close();
-        file_eff_vt_25_29->Close();
-        file_eff_vt_29_38->Close();
-        file_eff_vt_38_46->Close();
-        file_eff_vt_46_73->Close();
-        file_eff_vt_73_84->Close();
-        file_eff_vt_84_111->Close();
-        file_eff_vt_111_120->Close();
-        file_eff_vt_120_145->Close();
-        file_eff_vt_145_180->Close();
-        file_eff_vt_180_300->Close();
-        
         delete file_3870;
         delete file_1150;
         delete file_1150_3870;
-                
-        delete file_eff_vt_22;
-        delete file_eff_vt_22_25;
-        delete file_eff_vt_25_29;
-        delete file_eff_vt_29_38;
-        delete file_eff_vt_38_46;
-        delete file_eff_vt_46_73;
-        delete file_eff_vt_73_84;
-        delete file_eff_vt_84_111;
-        delete file_eff_vt_111_120;
-        delete file_eff_vt_120_145;
-        delete file_eff_vt_145_180;
-        delete file_eff_vt_180_300;
     }
+    
+    // close file
+    file_eff_vt_22->Close();
+    file_eff_vt_22_25->Close();
+    file_eff_vt_25_29->Close();
+    file_eff_vt_29_38->Close();
+    file_eff_vt_38_46->Close();
+    file_eff_vt_46_73->Close();
+    file_eff_vt_73_84->Close();
+    file_eff_vt_84_111->Close();
+    file_eff_vt_111_120->Close();
+    file_eff_vt_120_145->Close();
+    file_eff_vt_145_180->Close();
+    file_eff_vt_180_300->Close();
+
+    delete file_eff_vt_22;
+    delete file_eff_vt_22_25;
+    delete file_eff_vt_25_29;
+    delete file_eff_vt_29_38;
+    delete file_eff_vt_38_46;
+    delete file_eff_vt_46_73;
+    delete file_eff_vt_73_84;
+    delete file_eff_vt_84_111;
+    delete file_eff_vt_111_120;
+    delete file_eff_vt_120_145;
+    delete file_eff_vt_145_180;
+    delete file_eff_vt_180_300;
     
     //sort
     auto compare = [](const File_Info& a, const File_Info& b) {
